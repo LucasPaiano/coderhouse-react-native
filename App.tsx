@@ -1,89 +1,87 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
   StyleSheet,
-  TextInput,
-  Button,
   Text,
   View,
+  TextInput,
+  Button,
   FlatList,
   Modal,
 } from 'react-native';
 
 export default function App() {
-  const [inputText, setInputText] = useState('');
+  const [textValue, setTextValue] = useState('');
   const [itemList, setItemList] = useState([]);
-
   const [itemSelected, setItemSelected] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleChangeText = (text) => setInputText(text);
-  const handleAddItem = () => {
-
-    // no se usa push porque push solamente modifica, lo que hay que hacer es crear un valor nuevo (usando una copia del anterior + el valor nuevo)
-    setItemList([...itemList,{id: Math.random().toString(), value: inputText,},]);
-    // se resetea textValue
-    setInputText('');
+  const handleChangeText = (value) => {
+    setTextValue(value);
   }
 
-  const handleConfirmDelete = () => {
-    const id = itemSelected.id;
-    setItemList(itemList.filter(item => item.id !== id));
+  const handleAddItem = () => {
+    const item = {
+      value: textValue,
+      id: Math.random().toString(),
+    };
+    setItemList([
+      ...itemList,
+      item,
+    ]);
+    setTextValue('');
+  }
+
+  const handleRemoveItem = (id) => {
+    setModalVisible(true);
+    setItemSelected(itemList.find(item => item.id === id));
+  }
+
+  const handleRemoveConfirm = () => {
+    const newList = itemList.filter(item => item.id !== itemSelected.id);
+    setItemList(newList);
     setModalVisible(false);
     setItemSelected({});
-  }
-
-  const handleModal = id => {
-    setItemSelected(itemList.find(item => item.id === id));
-    setModalVisible(true);
   }
 
   return (
     <View style={styles.screen}>
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="Agregar item"
+          placeholder="Item de lista"
           style={styles.input}
           onChangeText={handleChangeText}
-          value={inputText}
+          value={textValue}
         />
         <Button
           title="ADD"
-          color="#3D9970"
           onPress={handleAddItem}
         />
       </View>
-      <FlatList
-        data={itemList}
-        renderItem={data => {
-          return (
-            <View style={[styles.item, styles.shadow]}>
+      <View style={styles.items}>
+        <FlatList
+          data={itemList}
+          keyExtractor={item => item.id}
+          renderItem={(data) => (
+            <View style={styles.item} key={data.item.id}>
               <Text>{data.item.value}</Text>
-              <Button
-                title="X"
-                color="#AAAAAA"
-                onPress={() => handleModal(data.item.id)}
-              />
+              <Button title="X" onPress={() => handleRemoveItem(data.item.id)} />
             </View>
-          );
-        }}
-        keyExtractor={item => item.id}
-      />
-      <Modal animationType="slide" visible={modalVisible} transparent>
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, styles.shadow]}>
-            <Text style={styles.modalMessage}>¿Está seguro que desea borrar?</Text>
-            <Text style={styles.modalTitle}>{itemSelected.value}</Text>
-            <View>
-              <Button
-                onPress={handleConfirmDelete}
-                title="CONFIRMAR"
-              />
-            </View>
+          )}
+        />
+      </View>
+      <Modal visible={modalVisible} animationType="slide">
+        <View>
+          <View>
+            <Text>¿Está seguro que desea borrar?</Text>
+          </View>
+          <View>
+            <Text>{itemSelected.value}</Text>
           </View>
         </View>
+        <View>
+          <Button title="CONFIRMAR" onPress={handleRemoveConfirm} />
+        </View>
       </Modal>
-      <StatusBar style="auto" />
     </View>
   );
 }
@@ -91,8 +89,6 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     padding: 30,
-    backgroundColor: '#F0F0F0',
-    flex: 1,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -105,6 +101,9 @@ const styles = StyleSheet.create({
     width: 200,
   },
   items: {
+    backgroundColor: '#ECECEC',
+    paddingLeft: 20,
+    paddingRight: 20,
     marginTop: 20,
   },
   item: {
@@ -116,37 +115,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderColor: 'black',
     borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: 'white',
   },
-  modalContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalContent: {
-    padding: 30,
-    backgroundColor: 'white',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalMessage: {
-    fontSize: 18,
-  },
-  modalTitle: {
-    fontSize: 30,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  shadow: {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  }
 });
