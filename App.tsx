@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Button,
-  FlatList,
-  Modal,
-} from 'react-native';
+import { StyleSheet, Alert, View } from 'react-native';
+import ModalItem from './components/Modal';
+import AddItem from './components/AddItem';
+import Lista from './components/Lista/Index';
 
 export default function App() {
   const [textValue, setTextValue] = useState('');
@@ -20,15 +15,19 @@ export default function App() {
   }
 
   const handleAddItem = () => {
-    const item = {
-      value: textValue,
-      id: Math.random().toString(),
-    };
-    setItemList([
-      ...itemList,
-      item,
-    ]);
-    setTextValue('');
+    if (textValue.length > 0) {
+      const item = {
+        value: textValue,
+        id: Math.random().toString(),
+      };
+      setItemList([
+        ...itemList,
+        item,
+      ]);
+      setTextValue('');
+    }else{
+      Alert.alert("Please enter a value");
+    }
   }
 
   const handleRemoveItem = (id) => {
@@ -45,43 +44,16 @@ export default function App() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Item de lista"
-          style={styles.input}
-          onChangeText={handleChangeText}
-          value={textValue}
-        />
-        <Button
-          title="ADD"
-          onPress={handleAddItem}
-        />
-      </View>
-      <View style={styles.items}>
-        <FlatList
-          data={itemList}
-          keyExtractor={item => item.id}
-          renderItem={(data) => (
-            <View style={styles.item} key={data.item.id}>
-              <Text>{data.item.value}</Text>
-              <Button title="X" onPress={() => handleRemoveItem(data.item.id)} />
-            </View>
-          )}
-        />
-      </View>
-      <Modal visible={modalVisible} animationType="slide">
-        <View>
-          <View>
-            <Text>¿Está seguro que desea borrar?</Text>
-          </View>
-          <View>
-            <Text>{itemSelected.value}</Text>
-          </View>
-        </View>
-        <View>
-          <Button title="CONFIRMAR" onPress={handleRemoveConfirm} />
-        </View>
-      </Modal>
+
+      <AddItem
+        onChange={handleChangeText}
+        handleAddItem={handleAddItem}
+        value={textValue}
+      />
+
+      <Lista itemList={itemList} handleRemoveItem={handleRemoveItem} />
+
+      <ModalItem visible={modalVisible} onDelete={handleRemoveConfirm.bind(this, itemSelected.id)} item={itemSelected} />
     </View>
   );
 }
@@ -89,31 +61,6 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     padding: 30,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  input: {
-    borderBottomColor: 'black',
-    borderBottomWidth: 1,
-    width: 200,
-  },
-  items: {
-    backgroundColor: '#ECECEC',
-    paddingLeft: 20,
-    paddingRight: 20,
-    marginTop: 20,
-  },
-  item: {
-    padding: 10,
-    marginTop: 10,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderColor: 'black',
-    borderWidth: 1,
-  },
+    paddingTop: 70
+  }
 });
